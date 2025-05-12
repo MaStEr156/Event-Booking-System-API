@@ -1,26 +1,26 @@
 using DB_Layer.Entities;
 using DB_Layer.Persistence;
-using Microsoft.AspNetCore.Builder;
+using DB_Layer.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using System;
 
-namespace Event_Booking_System_API
+namespace DB_Layer
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            builder.Services.AddDbAndIdentity(builder.Configuration);
+
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
-            builder.Services.AddDbAndIdentity(builder.Configuration);
             builder.Services.AddSwaggerJWT();
 
             var app = builder.Build();
@@ -29,19 +29,20 @@ namespace Event_Booking_System_API
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
-                app.UseSwagger();
-                app.UseSwaggerUI(options =>
-                {
-                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Event Booking API V1");
-                });
             }
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
-
             app.MapControllers();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                await Seeding.SeedRoles(services);
+            }
 
             app.Run();
         }
