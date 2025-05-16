@@ -26,11 +26,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <ProjectReference Include="..\DB-Layer\DB-Layer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DB-Layer\DB-Layer.csproj" />
+    <Folder Include="AuthService\Mappers\" />
+    <Folder Include="CategoryService\DTOs\" />
+    <Folder Include="CategoryService\Mappers\" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>

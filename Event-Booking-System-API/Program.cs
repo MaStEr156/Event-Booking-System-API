@@ -1,5 +1,6 @@
 using DB_Layer.Entities;
 using DB_Layer.Persistence;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,9 @@ namespace Event_Booking_System_API
 
             builder.Services.AddDbAndIdentity(builder.Configuration);
             builder.Services.AddSwaggerJWT();
+            builder.Services.AddRepositories();
+            builder.Services.AddAppServices();
+            builder.Services.AddJwtAuthentication(builder.Configuration);
 
             var app = builder.Build();
 

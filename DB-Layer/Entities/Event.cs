@@ -1,5 +1,7 @@
 ﻿using DB_Layer.Helpers.Enums;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DB_Layer.Entities
 {
@@ -17,7 +19,9 @@ namespace DB_Layer.Entities
         public string Description { get; set; }
 
         [Required]
-        public string Category { get; set; }
+        [ForeignKey("Category")]
+        public string CategoryId { get; set; }
+        public Category Category { get; set; }
 
         [Required]  
         public DateTime EventDate { get; set; }
@@ -29,6 +33,7 @@ namespace DB_Layer.Entities
         public string Venue { get; set; }
 
         [Required]
+        [Precision(18, 2)]
         public decimal Price { get; set; }
 
         [Required]

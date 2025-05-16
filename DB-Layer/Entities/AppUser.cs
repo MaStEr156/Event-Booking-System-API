@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Ollama_DB_layer.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace DB_Layer.Entities
@@ -20,5 +21,6 @@ namespace DB_Layer.Entities
         public bool IsDeleted { get; set; } = false;
 
         public virtual ICollection<Booking>? Bookings { get; set; } = new List<Booking>();
+        public List<RefreshToken>? RefreshTokens { get; set; }
     }
 }

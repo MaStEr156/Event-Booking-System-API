@@ -1,6 +1,7 @@
 ﻿using DB_Layer.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Ollama_DB_layer.Entities;
 using System.Reflection;
 
 namespace DB_Layer.Persistence
@@ -10,10 +11,8 @@ namespace DB_Layer.Persistence
         public DbSet<AppUser> Users { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<Booking> Bookings { get; set; }
-
-
-
-
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         private readonly IConfiguration _configuration;
 
@@ -32,14 +31,18 @@ namespace DB_Layer.Persistence
             }
         }
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<AppUser>()
+                .OwnsMany(u => u.RefreshTokens, rt =>
+                {
+                    rt.WithOwner().HasForeignKey("UserId");
+                    rt.Property<string>("UserId").IsRequired();
+                    rt.HasKey("Id");
+                });
 
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
             base.OnModelCreating(modelBuilder);
-
-
         }
     }
 }

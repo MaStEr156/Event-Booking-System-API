@@ -1,8 +1,20 @@
-﻿using DB_Layer.Entities;
+﻿using AuthenticationService.Helpers;
+using DB_Layer.Entities;
 using DB_Layer.Persistence;
+using DB_Layer.Repositories.BookingRepo;
+using DB_Layer.Repositories.CategoryRepo;
+using DB_Layer.Repositories.EventRepo;
+using DB_Layer.UOW;
+using Event_Booking_System_API.AuthService;
+using Event_Booking_System_API.BookingService;
+using Event_Booking_System_API.CategoryService;
+using Event_Booking_System_API.EventService;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 namespace Event_Booking_System_API
 {
@@ -48,6 +60,55 @@ namespace Event_Booking_System_API
                 options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
             })
             .AddEntityFrameworkStores<AppDbContext>();
+        }
+
+        public static void AddRepositories(this IServiceCollection services)
+        {
+            services.AddScoped<IEventRepository, EventRepository>();
+            services.AddScoped<IBookingRepository, BookingRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+        }
+        public static void AddAppServices(this IServiceCollection services)
+        {
+            services.AddScoped<IEventService, EventService.EventService>();
+            services.AddScoped<IBookingService, BookingService.BookingService>();
+            services.AddScoped<ICategoryService, CategoryService.CategoryService>();
+            services.AddScoped<IAuthService, AuthService.AuthService>();
+        }
+
+        public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<JWT>(configuration.GetSection("JWT"));
+            services.AddScoped<JWTManager>();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(o =>
+            {
+                o.RequireHttpsMetadata = false;
+                o.SaveToken = false;
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = configuration["JWT:Issuer"],
+                    ValidAudience = configuration["JWT:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"])),
+                };
+            });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("User", policy => policy.RequireRole("User"));
+            });
         }
 
     }
