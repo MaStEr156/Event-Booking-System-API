@@ -12,8 +12,8 @@ namespace Event_Booking_System_API.EventService.Helpers
             eventEntity.CategoryId = eventDto.CategoryId;
             eventEntity.EventDate = eventDto.EventDate;
             eventEntity.Venue = eventDto.Venue;
-            eventEntity.Price = eventDto.Price;
-            eventEntity.ImageUrl = newImageUrl;
+            eventEntity.Price = eventDto.Price?? 0;
+            eventEntity.ImageUrl = newImageUrl ?? "";
         }
     }
 } 

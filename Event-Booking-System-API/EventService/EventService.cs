@@ -95,9 +95,17 @@ namespace Event_Booking_System_API.EventService
                 throw new KeyNotFoundException($"Event with ID {id} not found.");
             try
             {
-                string imageUrl = await eventDto.Image.SaveEventImageAsync("EventsImages", _webHostEnvironment);
-                eventEntity.UpdateEvent(eventDto, imageUrl);
-                await _unitOfWork.EventRepository.UpdateAsync(eventEntity);
+                if (eventDto.Image != null)
+                {
+                    string imageUrl = await eventDto.Image.SaveEventImageAsync("EventsImages", _webHostEnvironment);
+                    eventEntity.UpdateEvent(eventDto, imageUrl);
+                }
+                else
+                {
+                    eventEntity.UpdateEvent(eventDto, eventEntity.ImageUrl);
+                }
+
+                    await _unitOfWork.EventRepository.UpdateAsync(eventEntity);
                 await _unitOfWork.SaveChangesAsync();
             }
             catch (Exception ex)

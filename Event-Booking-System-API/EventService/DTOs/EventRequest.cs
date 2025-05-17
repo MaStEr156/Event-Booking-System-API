@@ -4,27 +4,20 @@ namespace Event_Booking_System_API.EventService.DTOs
 {
     public class EventRequest
     {
-        [Required]
         [MaxLength(100)]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
-        [Required]
         [MaxLength(500)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
-        [Required]
-        public string CategoryId { get; set; }
+        public string? CategoryId { get; set; }
 
-        [Required]
         public DateTime EventDate { get; set; }
-        [Required]
-        public string Venue { get; set; }
+        public string? Venue { get; set; }
 
-        [Required]
-        public decimal Price { get; set; }
+        public decimal? Price { get; set; }
 
-        [Required]
-        public IFormFile Image { get; set; }
+        public IFormFile? Image { get; set; }
 
     }
 }

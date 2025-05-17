@@ -60,15 +60,15 @@ namespace Event_Booking_System_API.AuthService
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
-            var user = await _userManager.FindByNameAsync(request.UserName);
+            var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
-                return null;
+                throw new Exception("Email not Found");
             }
 
             if (!await _userManager.CheckPasswordAsync(user, request.Password))
             {
-                return null;
+                throw new Exception("Invalid password");
             }
 
             var token = await _jwtManager.CreateJwtToken(user, _userManager);
@@ -211,7 +211,7 @@ namespace Event_Booking_System_API.AuthService
             return "Role deassigned successfully";
         }
 
-        public async Task<AppUser> GetUserByTokenAsync(string token)
+        public async Task<UserResponse> GetUserByTokenAsync(string token)
         {
             var principal = _jwtManager.ValidateToken(token);
             if (principal == null)
@@ -220,7 +220,25 @@ namespace Event_Booking_System_API.AuthService
             }
 
             var userId = principal.FindFirst("UserId")?.Value;
-            return await _userManager.FindByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId);
+            
+            if (user == null)
+            {
+                return null;
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            
+            return new UserResponse
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                CreatedAt = user.CreatedAt,
+                Roles = roles.ToList()
+            };
         }
 
         public async Task<bool> LogoutAsync(LogoutRequest request)

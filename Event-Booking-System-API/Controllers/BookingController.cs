@@ -1,5 +1,6 @@
 using Event_Booking_System_API.BookingService;
 using Event_Booking_System_API.BookingService.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims; // For User.FindFirst
@@ -77,14 +78,11 @@ namespace Event_Booking_System_API.Controllers
             }
 
             // --- IMPORTANT: Retrieve UserId from authenticated user context ---
-            /* var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-             if (string.IsNullOrEmpty(userId))
-             {
-                 return Unauthorized("User not authenticated or UserId not found.");
-             }*/
-            // For demonstration without full auth, using a placeholder. 
-            // In a real app, this MUST come from a secure, authenticated source.
-            string userId = "1"; // Placeholder - REPLACE with actual User ID from Claims
+            var userId = User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User not authenticated or UserId not found.");
+            }
 
             try
             {
@@ -193,6 +191,32 @@ namespace Event_Booking_System_API.Controllers
             catch (KeyNotFoundException ex) // If service throws this
             {
                 return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Log exception ex
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("GetUserBookings")]
+        [Authorize]
+        public async Task<IActionResult> GetUserBookingsAsync()
+        {
+            var userId = User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User not authenticated or UserId not found.");
+            }
+
+            try
+            {
+                var (bookings, error) = await _bookingService.GetBookingsByUserIdAsync(userId);
+                if (bookings == null)
+                {
+                    return NotFound(error);
+                }
+                return Ok(bookings);
             }
             catch (Exception ex)
             {

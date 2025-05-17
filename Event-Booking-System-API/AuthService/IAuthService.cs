@@ -11,7 +11,7 @@ namespace Event_Booking_System_API.AuthService
         Task<(RefreshTokenResponse?, string?)> RefreshTokenAsync(RefreshTokenRequest request);
         Task<string> AssignRoleAsync(RoleModel request);
         Task<string> DeassignRoleAsync(RoleModel request);
-        Task<AppUser> GetUserByTokenAsync(string token);
+        Task<UserResponse> GetUserByTokenAsync(string token);
         Task<bool> LogoutAsync(LogoutRequest request);
 
 

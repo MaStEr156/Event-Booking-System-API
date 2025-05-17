@@ -45,7 +45,7 @@ namespace Event_Booking_System_API.EventService.Mappers
                 CategoryId = createEventRequest.CategoryId,
                 EventDate = createEventRequest.EventDate,
                 Venue = createEventRequest.Venue,
-                Price = createEventRequest.Price,
+                Price = createEventRequest.Price ?? 0,
                 ImageUrl = ImageUrl,
                 CreatedAt = DateTime.UtcNow
             };
