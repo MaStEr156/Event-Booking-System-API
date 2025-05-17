@@ -140,38 +140,41 @@ namespace Event_Booking_System_API.AuthService
             return "Profile updated successfully";
         }
 
-        public async Task<string> RefreshTokenAsync(string token)
+        public async Task<(RefreshTokenResponse?, string?)> RefreshTokenAsync(RefreshTokenRequest request)
         {
-            var principal = _jwtManager.ValidateToken(token);
-            if (principal == null)
+            // Find user by refresh token directly
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.RefreshTokens != null && 
+                                         u.RefreshTokens.Any(rt => rt.Token == request.RefreshToken));
+            
+            if (user == null)
             {
-                return "Invalid token";
+                return (null, "Invalid refresh token");
             }
 
-            var userId = principal.FindFirst("UserId")?.Value;
-            var user = await _userManager.FindByIdAsync(userId);
-
-            if (user == null || user.RefreshTokens == null)
+            var existingRefreshToken = user.RefreshTokens
+                .FirstOrDefault(rt => rt.Token == request.RefreshToken);
+            
+            if (existingRefreshToken == null || existingRefreshToken.ExpiresOn <= DateTime.UtcNow)
             {
-                return "Invalid refresh token";
+                return (null, "Invalid refresh token");
             }
 
-            var refreshToken = user.RefreshTokens.FirstOrDefault(rt => rt.Token == token);
-            if (refreshToken == null || refreshToken.ExpiresOn <= DateTime.UtcNow)
-            {
-                return "Invalid refresh token";
-            }
-
+            // Generate new tokens
             var newToken = await _jwtManager.CreateJwtToken(user, _userManager);
             var newRefreshToken = _jwtManager.GenerateRefreshToken();
 
-            // Remove old refresh token and add new one
-            user.RefreshTokens.Remove(refreshToken);
+            // Update refresh tokens
+            user.RefreshTokens.Remove(existingRefreshToken);
             user.RefreshTokens.Add(newRefreshToken);
             
             await _userManager.UpdateAsync(user);
 
-            return new JwtSecurityTokenHandler().WriteToken(newToken);
+            return (new RefreshTokenResponse
+            {
+                newAccessToken = new JwtSecurityTokenHandler().WriteToken(newToken),
+                newRefreshToken = newRefreshToken.Token
+            }, null);
         }
 
         public async Task<string> AssignRoleAsync(RoleModel request)
@@ -220,17 +223,17 @@ namespace Event_Booking_System_API.AuthService
             return await _userManager.FindByIdAsync(userId);
         }
 
-        public async Task<bool> LoggoutAsync(string refreshtoken)
+        public async Task<bool> LogoutAsync(LogoutRequest request)
         {
             var user = await _userManager.Users.FirstOrDefaultAsync(u => 
-                u.RefreshTokens != null && u.RefreshTokens.Any(rt => rt.Token == refreshtoken));
+                u.RefreshTokens != null && u.RefreshTokens.Any(rt => rt.Token == request.RefreshToken));
             
             if (user == null)
             {
                 return false;
             }
 
-            var token = user.RefreshTokens.FirstOrDefault(rt => rt.Token == refreshtoken);
+            var token = user.RefreshTokens.FirstOrDefault(rt => rt.Token == request.RefreshToken);
             if (token != null)
             {
                 user.RefreshTokens.Remove(token);

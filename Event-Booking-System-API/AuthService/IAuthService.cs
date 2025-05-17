@@ -8,11 +8,11 @@ namespace Event_Booking_System_API.AuthService
         Task<RegisterResponse> RegisterAsync(RegisterRequest request);
         Task<LoginResponse> LoginAsync(LoginRequest request);
         Task<string> UpdateProfileAsync(UpdateProfileModel request, string token);
-        Task<string> RefreshTokenAsync(string token);
+        Task<(RefreshTokenResponse?, string?)> RefreshTokenAsync(RefreshTokenRequest request);
         Task<string> AssignRoleAsync(RoleModel request);
         Task<string> DeassignRoleAsync(RoleModel request);
         Task<AppUser> GetUserByTokenAsync(string token);
-        Task<bool> LoggoutAsync(string refreshtoken);
+        Task<bool> LogoutAsync(LogoutRequest request);
 
 
     }

@@ -27,6 +27,9 @@ namespace AuthenticationService.Helpers
             var roles = await userManager.GetRolesAsync(user);
             var roleClaims = roles.Select(role => new Claim(ClaimTypes.Role, role)).ToList();
 
+            // Log roles for debugging
+            Console.WriteLine($"User {user.UserName} has roles: {string.Join(", ", roles)}");
+
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
@@ -36,6 +39,13 @@ namespace AuthenticationService.Helpers
             }
             .Union(userClaims)
             .Union(roleClaims);
+
+            // Log all claims for debugging
+            Console.WriteLine($"Token claims for {user.UserName}:");
+            foreach (var claim in claims)
+            {
+                Console.WriteLine($"Claim: {claim.Type} = {claim.Value}");
+            }
 
             var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
             var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
@@ -55,9 +65,8 @@ namespace AuthenticationService.Helpers
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var key = Encoding.ASCII.GetBytes(_jwt.Key);
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                var tokenValidationParameters = new TokenValidationParameters
                 {
-
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
@@ -67,22 +76,22 @@ namespace AuthenticationService.Helpers
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     RoleClaimType = ClaimTypes.Role,
                     ClockSkew = TimeSpan.Zero
+                };
 
-                }, out SecurityToken validatedToken);
-
-                return tokenHandler.ValidateToken(token, new TokenValidationParameters
+                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken validatedToken);
+                
+                // Log claims from validated token
+                Console.WriteLine("Validated token claims:");
+                foreach (var claim in principal.Claims)
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidIssuer = _jwt.Issuer,
-                    ValidateAudience = true,
-                    ValidAudience = _jwt.Audience,
-                    ClockSkew = TimeSpan.Zero
-                }, out validatedToken);
+                    Console.WriteLine($"Claim: {claim.Type} = {claim.Value}");
+                }
+
+                return principal;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Token validation failed: {ex.Message}");
                 return null;
             }
         }

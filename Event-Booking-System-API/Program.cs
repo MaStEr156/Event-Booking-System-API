@@ -21,6 +21,18 @@ namespace Event_Booking_System_API
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
+            // Add CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.WithOrigins("http://localhost:3000") // Add your frontend URL
+                           .AllowAnyMethod()
+                           .AllowAnyHeader()
+                           .AllowCredentials();
+                });
+            });
+
             builder.Services.AddDbAndIdentity(builder.Configuration);
             builder.Services.AddSwaggerJWT();
             builder.Services.AddRepositories();
@@ -42,8 +54,11 @@ namespace Event_Booking_System_API
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            // Enable CORS
+            app.UseCors(); // This will use the default policy we defined above
 
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
 

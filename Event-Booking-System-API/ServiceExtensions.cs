@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Security.Claims;
 
 namespace Event_Booking_System_API
 {
@@ -22,30 +23,33 @@ namespace Event_Booking_System_API
     {
         public static void AddSwaggerJWT(this IServiceCollection services)
         {
-            services.AddSwaggerGen(options =>
+            services.AddSwaggerGen(c =>
             {
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Authentication", Version = "v1" });
+
+                // ✅ Add JWT Authentication support in Swagger
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
+                    Type = SecuritySchemeType.Http,
                     Scheme = "Bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "Enter 'Bearer' followed by a space and your token."
+                    Description = "Enter 'Bearer {your token}' below:"
                 });
 
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
-                        new OpenApiSecurityScheme
+                    new OpenApiSecurityScheme
                         {
-                            Reference = new OpenApiReference
+                        Reference = new OpenApiReference
                             {
                                 Type = ReferenceType.SecurityScheme,
                                 Id = "Bearer"
                             }
                         },
-                        Array.Empty<string>()
+                    new string[] {}
                     }
                 });
             });
@@ -75,13 +79,14 @@ namespace Event_Booking_System_API
             services.AddScoped<IEventService, EventService.EventService>();
             services.AddScoped<IBookingService, BookingService.BookingService>();
             services.AddScoped<ICategoryService, CategoryService.CategoryService>();
-            services.AddScoped<IAuthService, AuthService.AuthService>();
         }
 
         public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<JWT>(configuration.GetSection("JWT"));
             services.AddScoped<JWTManager>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IAuthService, AuthService.AuthService>();
 
             services.AddAuthentication(options =>
             {

@@ -39,6 +39,7 @@ namespace Event_Booking_System_API.Controllers
             return Ok(response);
         }
 
+        [Authorize]
         [HttpPost("update-profile")]
         public async Task<ActionResult<string>> UpdateProfile(UpdateProfileModel request)
         {
@@ -51,15 +52,16 @@ namespace Event_Booking_System_API.Controllers
             return Ok(response);
         }
 
+        [Authorize]
         [HttpPost("refresh-token")]
-        public async Task<ActionResult<string>> RefreshToken([FromBody] string token)
+        public async Task<ActionResult<string>> RefreshToken([FromBody] RefreshTokenRequest request)
         {
-            var response = await _authService.RefreshTokenAsync(token);
-            if (response.StartsWith("Invalid"))
+            var response = await _authService.RefreshTokenAsync(request);
+            if (response.Item1 == null)
             {
-                return BadRequest(response);
+                return BadRequest(response.Item2);
             }
-            return Ok(response);
+            return Ok(response.Item1);
         }
 
         [Authorize(Roles = "Admin")]
@@ -86,6 +88,7 @@ namespace Event_Booking_System_API.Controllers
             return Ok(response);
         }
 
+        [Authorize]
         [HttpGet("get-user")]
         public async Task<ActionResult<AppUser>> GetUser()
         {
@@ -99,9 +102,9 @@ namespace Event_Booking_System_API.Controllers
         }
 
         [HttpPost("logout")]
-        public async Task<ActionResult<bool>> Logout([FromBody] string refreshToken)
+        public async Task<ActionResult<bool>> Logout([FromBody] LogoutRequest request)
         {
-            var result = await _authService.LoggoutAsync(refreshToken);
+            var result = await _authService.LogoutAsync(request);
             if (!result)
             {
                 return BadRequest("Invalid refresh token");
