@@ -17,13 +17,13 @@ namespace Event_Booking_System_API
 
             // Add services to the container.
             builder.Services.AddControllers();
-            
+
             // Add CORS before other services
             builder.Services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    policy.WithOrigins("http://localhost:5174", "https://localhost:5174")
+                    policy.WithOrigins("http://localhost:5174", "https://localhost:5174", "https://event-booking-system-front-end.vercel.app/")
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials();
@@ -56,7 +56,7 @@ namespace Event_Booking_System_API
             app.UseCors();
 
             // Comment out HTTPS redirection for development
-            // app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             // Add static files middleware
             app.UseStaticFiles();
